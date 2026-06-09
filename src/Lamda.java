@@ -3,11 +3,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
+public class Lamda {
     public static void main(String[] args) {
-// Lamda Expression
+
+        // Lamda Expression
 
         // Without LE
 //        Walkable obj = new WalkFast();
