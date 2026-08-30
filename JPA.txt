@@ -1,0 +1,1582 @@
+Q. What is ORM?
+
+ORM stands for Object Relational Mapping. It maps Java objects/classes to relational database tables/rows.
+
+ORM was created to reduce this repetitive object ↔ relational database mapping work.
+
+Before ORM, developers commonly used JDBC directly.
+
+Suppose we want to fetch a customer from the database.
+
+Code :
+PreparedStatement statement =
+        connection.prepareStatement(
+            "SELECT id, name, email FROM customer WHERE id = ?"
+        );
+
+statement.setLong(1, 1);
+
+ResultSet rs = statement.executeQuery();
+
+DB return : 1 | Rahul | rahul@gmail.com
+
+But Java needs a Customer object.
+
+Customer customer = new Customer();
+
+customer.setId(rs.getLong("id"));
+customer.setName(rs.getString("name"));
+customer.setEmail(rs.getString("email"));
+
+Manually peroformed : Database Row -> Java Object
+
+And while inserting data, we'd manually do the opposite:
+
+Java Object -> SQL parameters -> Database Row
+
+A java application can have multiple objects -> Order, Customer, Payment ... and for every class need to do this task.
+
+so ORM was created to reduce this repetitive object ↔ relational database mapping work and help to convert Java object <-> Database row thats why called ORM.
+
+Java Objects <->  ORM  <-> Database Tables
+
+Defination :
+ORM exists because Java applications work with objects while relational databases work with tables and rows. ORM bridges those two worlds and reduces the repetitive mapping code developers would otherwise write manually.
+
+ORM frameworks : Hibernate, EclipseLink, OpenJPA, MyBatis, jOOQ
+
+Hibernate is widely used because it is mature, feature-rich, well integrated with JPA and Spring, has a large ecosystem, and reduces a lot of persistence boilerplate. But alternatives like EclipseLink, MyBatis, and jOOQ may be better depending on how much SQL control the application needs.
+
+Q. Why is Hibernate widely used?
+Because it is mature, feature-rich, JPA-compatible, strongly integrated with Spring, supports many databases, and has a large community.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. What is Hibernate?
+
+Hibernate is one of the most widely used ORM frameworks in Java. It maps Java objects to relational database tables and reduces the need to write repetitive JDBC and object-mapping code manually.
+
+Hibernate can help us:
+
+Map Java classes to database tables
+Map Java objects to database rows
+Generate common SQL operations
+Convert database results back into Java objects
+
+ORM
+↓
+Concept / technique
+
+Hibernate
+↓
+A framework that implements ORM
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. What is JPA?
+
+JPA stands for Jakarta Persistence API. Earlier it was called Java Persistence API.
+
+JPA/Jakarta Persistence is a specification that defines standardized APIs and rules for persistence and ORM in Java.
+
+JPA is not an ORM framework. JPA is a specification/standard for ORM in Java.
+
+ORM
+↓
+Concept
+
+JPA
+↓
+Standard / specification for doing ORM in Java
+
+Hibernate
+↓
+Framework that implements that standard
+
+
+JPA -> Contract / specification |  Hibernate -> Implementation
+
+For example, JPA gives us annotations such as:
+@Entity
+@Table
+@Id
+@Column
+@OneToMany
+@ManyToOne
+
+These tell an ORM provider how Java classes relate to database structures.
+
+JPA defines standard APIs for operations such as:
+Save entity
+Find entity
+Update entity
+Delete entity
+Query entities
+Manage relationships
+Manage entity lifecycle
+
+JPA tells us what operations should exist. Hibernate provides the actual implementation of those operations.
+
+Example : entityManager.find(Customer.class, 1L); -> JPA defines what find() means and Hibernate implements it.
+
+If an interviewer asks: Is @Entity a Hibernate annotation?
+Answer: No. @Entity is a JPA/Jakarta Persistence annotation. Hibernate understands it because Hibernate is a JPA implementation.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Q. What is Spring Data JPA?
+
+Spring library built on top of JPA
+Spring Data JPA is a Spring project that makes working with JPA easier.
+Spring Data JPA provides repository abstractions on top of JPA and reduces repetitive data-access code.
+
+Spring Data JPA gives you
+JpaRepository
+CrudRepository
+PagingAndSortingRepository
+and features like derived query methods:findByEmail(String email);
+
+Definations : 
+Spring Data JPA is a Spring module built on top of JPA that simplifies database access by providing repository abstractions, reducing boilerplate code for common CRUD and query operations.
+
+Q. Is Spring Data JPA the same as JPA?
+No. JPA is a specification for persistence, while Spring Data JPA is a Spring library that uses JPA and provides easier repository-based data access.
+
+@Entity → JPA
+JpaRepository → Spring Data JPA
+
+Hibernate, acting as the JPA provider, reads the JPA metadata such as @Entity, @Id, @Table, and relationship annotations at runtime and uses that metadata to map Java objects to database tables.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Relation flow :
+
+Spring Data JPA
+       ↓
+      JPA
+       ↓
+   Hibernate
+       ↓
+     JDBC
+       ↓
+   Database
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@Entity 
+tells the JPA provider:
+This class represents persistent data and should be managed as a JPA entity.
+Java Entity Class -> Database Table
+
+
+@Table 
+gives additional information about the database table associated with this entity.
+
+@Entity
+@Table(name = "products")
+public class Product {
+}
+
+Product (Java class) -> products (Table inside DB)
+   
+Is @Table mandatory? No -> Hibernate can derive a table name from the entity/class name according to its naming strategy.
+
+
+@UniqueConstraint 
+No two rows may have the same value for given col name.
+
+@UniqueConstraint(
+    name = "unique_product_name",
+    columnNames = "name"
+)
+No two rows may have the same value for name.
+
+@UniqueConstraint(
+    name = "unique_product",
+    columnNames = {"col1", "col2"}
+)
+The combination (col1, col2) must be unique.
+
+
+@indexes
+This asks the schema-generation process to create an index on:
+
+@Index(
+    name = "idx_product_name",
+    columnList = "col"
+)
+
+
+This is a composite index:
+@Index(
+    name = "idx_product_title_price",
+    columnList = "col1, col2"
+)
+
+Q. What is a composite unique constraint?
+It makes the combination of multiple columns unique, not each individual column separately.
+
+The name inside @Index and @UniqueConstraint is not mandatory its just provides that database object a meaningful identifier and mainly the database identifier.
+Easier debugging
+Easier database maintenance
+Better schema migrations
+
+
+@Id tells JPA:
+This field uniquely identifies each entity row.
+
+@GeneratedValue
+This tells JPA: The application will not manually provide this ID. The ID should be generated automatically.
+
+| Strategy   | Who/how generates ID?              |
+| ---------- | ---------------------------------- |
+| `IDENTITY` | Database identity / auto-increment |
+| `SEQUENCE` | Database sequence                  |
+| `TABLE`    | Separate ID-generation table       |
+| `UUID`     | UUID generation                    |
+| `AUTO`     | JPA provider chooses               |
+
+
+
+IDENTITY
+→ INSERT happens first
+→ database generates ID
+
+SEQUENCE
+→ Hibernate can obtain ID first
+→ then INSERT the row
+
+TABLE : Here JPA uses a separate database table to keep track of generated IDs. 
+it requires extra table reads/updates, so it is generally less attractive for performance-sensitive systems
+
+UUID : The major advantage is that UUIDs can be generated without relying on one centralized auto-increment counter.
+That's useful in distributed systems. Multiple instances running -> server1, server2 ...
+Each can generate globally unique IDs without asking: What was the last database ID?
+
+AUTO : JPA provider, choose an appropriate generation strategy for me.
+
+Q. What does @GeneratedValue do?
+Tells the JPA provider that the primary-key value should be generated automatically.
+
+Q. What does GenerationType.IDENTITY mean?
+It uses the database's identity mechanism, such as MySQL AUTO_INCREMENT.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Common Hibernate Configurations
+
+1. spring.jpa.hibernate.ddl-auto=update/create/validate/createdrop/none
+This property tells Hibernate: What should I do with the database schema when the application starts.
+
+| Value         | What happens                             |
+| ------------- | ---------------------------------------- |
+| `create`      | Drops old schema and creates new one     |
+| `create-drop` | Creates at startup, drops at shutdown    |
+| `update`      | Tries to modify schema to match entities |
+| `validate`    | Checks schema but doesn't modify it      |
+| `none`        | Does nothing                             |
+
+
+2. spring.jpa.show-sql=true
+This tells JPA/Hibernate integration to display generated SQL. Very useful while learning and debugging.
+
+
+3. spring.jpa.properties.hibernate.format_sql=true
+It only makes printed SQL easier to read.
+
+
+4. spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL
+Different relational databases use SQL (MySQL, PostgreSQL, Oracle), but their SQL syntax and supported features are not always exactly identical. can differ in things like: pagination syntax, data types, identity/sequence support, functions, locking syntax etc.
+
+So Hibernate needs to know: Which database's SQL should I generate?
+
+5. Dialect (Optional) because Modern Hibernate can usually inspect the JDBC connection/database metadata and determine the appropriate dialect automatically.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Interview :
+A Hibernate dialect defines database-specific SQL behavior. In modern Hibernate it is usually auto-detected from JDBC metadata, so explicitly configuring it is often unnecessary.
+
+Q. What does ddl-auto do?
+Controls how Hibernate handles database schema creation, updating, validation, or removal.
+
+Q. Should we use ddl-auto=update in production?
+Usually no. Prefer controlled migrations using Flyway or Liquibase.
+
+Q. Difference between show-sql and format_sql?
+
+show-sql   → display SQL
+format_sql → make displayed SQL readable
+
+Q. What is Hibernate Dialect?
+It tells Hibernate about database-specific SQL behavior.
+
+Q. Is dialect mandatory?
+Usually not with modern Hibernate because it can often detect the database from JDBC metadata.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Short interview note
+
+Q. What does GenerationType.IDENTITY mean?
+The database generates the primary key during insertion, commonly using an auto-increment/identity column.
+
+Q. Why did String id + IDENTITY fail in MySQL?
+Hibernate generated a VARCHAR AUTO_INCREMENT column, but MySQL requires an appropriate numeric type for this auto-increment identity mechanism.
+
+Q. What does Java Long usually map to in MySQL through Hibernate?
+BIGINT.
+
+Q. What does GenerationType.IDENTITY commonly use in MySQL?
+AUTO_INCREMENT.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Spring Data JPA repository hierarchy :
+
+Repository<T, ID>
+        ↑
+CrudRepository<T, ID>
+        ↑
+PagingAndSortingRepository<T, ID>
+        ↑
+JpaRepository<T, ID>
+
+QueryByExampleExecutor<T>
+        ↑
+        └──────── JpaRepository<T, ID>
+
+
+
+1. Repository<T, ID>
+
+At the top is: public interface Repository<T, ID> { } It is mainly a marker interface.
+It tells Spring Data: This interface belongs to the Spring Data repository abstraction.
+
+it does not itself give you normal CRUD methods like: save(), findById(), delete(). Its main purpose is to establish the repository type.
+T  = Entity
+ID = Primary key
+
+Example : Repository<Product, Long>  -> T  = Product and ID = Long
+
+So Spring knows: This repository manages Product entities whose primary-key type is Long.
+
+This generic information becomes important throughout the hierarchy.
+
+
+2. CrudRepository<T, ID>
+It extends the repository abstraction and gives you CRUD operations.
+save(...)
+saveAll(...)
+
+findById(...)
+findAll()
+findAllById(...)
+
+existsById(...)
+count()
+
+deleteById(...)
+delete(...)
+deleteAll(...)
+
+
+3. PagingAndSortingRepository<T, ID>  -> Pagination + Sorting
+
+Imagine DB contains 10Cr data so we can't load all the data in one go and We should not do: findAll(); and load millions of rows into memory.
+
+Instead we request:
+Page 0 → 20 records -> first page
+Page 1 → next 20 -> second page
+Page 2 → next 20 ..
+
+Spring Data pagination is 0-based.
+
+Methods:
+findAll(Pageable pageable)
+findAll(Sort sort)
+
+Pagination:
+Pageable pageable = PageRequest.of(0, 10);
+repository.findAll(pageable);
+Meaning: Give me the first page containing 10 records.
+
+Sorting :
+repository.findAll( Sort.by("price"));
+Mean: Return Products sorted according to price.
+
+Pagination + Sorting :
+Pageable pageable = PageRequest.of(0, 20, Sort.by("price")) 
+Pageable pageable = PageRequest.of(0, 20, Sort.by("price").descending())
+
+
+4. JpaRepository<T, ID>
+Additional JPA-specific functionality. 
+flush()
+saveAndFlush(...)
+deleteAllInBatch(...)
+deleteAllByIdInBatch(...)
+getOne(...) 
+...
+
+JpaRepository is specifically designed for JPA-based persistence. The interface we will commonly uses because we automatically get a large set of operations.
+
+Why do we normally extend JpaRepository?
+
+Because for a normal Spring Boot + Hibernate + JPA application, we usually want all of this: CRUD + Pagination + Sorting + JPA-specific operations.
+
+
+Interview :
+
+The important inheritance idea ->
+
+Let's say we have Product as Entity and we created an inetrface :
+public interface ProductRepository extends JpaRepository<Product, Long> { }
+
+we write zero implementation but still we have :
+save(...)
+findById(...)
+findAll(...)
+delete(...)
+count(...)
+existsById(...)
+flush(...)
+saveAndFlush(...)
+
+Why ?
+
+Because:
+
+ProductRepository
+       ↓ extends
+JpaRepository
+       ↓ inherits
+other repository interfaces
+       ↓
+all their methods become available
+
+This is ordinary Java interface inheritance, combined with Spring Data generating the runtime implementation. 
+
+** But who implements ProductRepository ? There is no: public class ProductRepositoryImpl { .. } written by us. 
+
+We inject only yet it works how ? :
+
+@Autowired
+private ProductRepository productRepository;
+
+Answer :
+
+Spring Data scans repository interfaces
+        ↓
+Finds ProductRepository
+        ↓
+Recognizes that it is a repository
+        ↓
+Creates a runtime implementation/proxy
+        ↓
+Registers it as a Spring bean
+        ↓
+You can inject ProductRepository
+
+Behind many standard JpaRepository operations, Spring Data JPA uses an implementation called: SimpleJpaRepository
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Short interview notes
+
+Q. What is Repository<T, ID>?
+The root Spring Data repository abstraction. T is the entity type and ID is its primary-key type.
+
+Q. What does CrudRepository provide?
+Basic create, read, update, and delete operations.
+
+Q. What does PagingAndSortingRepository provide?
+Pagination and sorting operations.
+
+Q. What is JpaRepository?
+A Spring Data JPA repository interface that provides CRUD, paging/sorting, and additional JPA-specific operations.
+
+Q. If we only create an interface, who implements it?
+Spring Data creates a runtime implementation/proxy, generally delegating standard behavior to SimpleJpaRepository.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Ways to create Queries :
+
+Spring Data JPA gives us multiple ways to create queries, and interviewers often ask when to use each one.
+
+1. Derived Query Methods
+2. @Query with JPQL
+3. @Query with Native SQL
+4. Named Queries
+5. Specifications / Criteria API
+6. Query By Example
+7. Custom Repository Implementation
+8. Stored Procedures
+
+
+Spring Data JPA officially supports both deriving queries from method names and manually declared queries. Its default lookup strategy first looks for a declared query and, if none exists, tries to derive one from the method name.
+
+
+1. Derived Query Methods -
+
+Example : List<Product> findByName(String name);
+
+We do not write SQL. Technically, Spring Data JPA derives a JPQL query from the method name.
+
+Structure :
+
+findTop10DistinctByPriceGreaterThanOrderByPriceDesc
+│        │        │                    │
+subject  modifier predicate            sorting
+
+The first By is the separator between the subject and the actual condition/predicate
+
+
+Rule 1: Query prefixes 
+
+find...By
+read...By
+query...By
+get...By
+search...By
+stream...By
+exists...By
+count...By
+delete...By
+remove...By
+
+Rule 2: First and Top
+
+findFirstByName()
+findTop3ByName()
+
+
+Rule 3: DISTINCT can help eliminate duplicates from the result.
+
+findDistinctByName()
+
+
+Rule 4: And and Or
+
+findByNameAndTitle(name, title)
+findByNameOrTitle(name, title)
+
+
+Other very important derived-query keywords :
+
+Equality :
+findByName(String name);
+findByNameIs(String name);
+findByNameEquals(String name);
+
+These three are effectively similar.
+
+Greater than
+findByPriceGreaterThan(BigDecimal price);
+
+Greater than or equal
+findByPriceGreaterThanEqual(BigDecimal price);
+
+Less than
+findByPriceLessThan(BigDecimal price);
+
+Between
+findByPriceBetween(min, max);
+
+
+String queries :
+
+Containing
+findByNameContaining(String text); -> WHERE name LIKE '%text%'
+
+StartingWith
+findByNameStartingWith(text); -> WHERE name LIKE 'text%'
+
+EndingWith
+findByNameEndingWith(text); -> WHERE name LIKE '%text'
+
+IgnoreCase
+findByNameIgnoreCase(String name);
+
+In
+List<String> names = List.of("Laptop", "Phone", "Tablet");
+List<Product> findByNameIn(List<String> names); -> WHERE name IN ('Laptop', 'Phone', 'Tablet')
+findByNameNotIn(List<String> names)
+
+
+
+2. @Query with JPQL -
+
+@Query( "select p from Product p where p.price > :price and p.quantity > :quantity order by p.price desc")
+List<Product> findAvailableExpensiveProducts(@Param("price") BigDecimal price, @Param("quantity") Integer quantity);
+
+This is JPQL, not SQL. JPQL works with: Entity names (Java field/property names)
+
+
+3. Native SQL query -
+
+Sometimes we want actual database SQL. uses actual DB table/column names.
+
+@Query( value = "SELECT * FROM products WHERE price > :price", nativeQuery = true)
+List<Product> findExpensiveProducts(@Param("price") BigDecimal price);
+
+Native SQL gives you more database-specific control, but it couples your query more strongly to the database.
+
+
+4. Modifying custom queries -
+
+@Query isn't only for SELECT. Sometime we require Update.
+
+@Modifying
+@Query("update Product p set p.quantity = :quantity where p.id = :id")
+int updateQuantity(@Param("id") Long id,@Param("quantity") Integer quantity);
+
+@Modifying tells Spring Data: This query modifies data; it isn't a normal SELECT query.
+
+Typically, modifying operations should run inside a transaction.
+
+Inside Service level:
+@Transactional
+public void updateProduct(...) {
+    repository.updateQuantity(...);
+}
+
+
+5. Named Queries -
+
+JPA also supports queries defined with names.
+
+@NamedQuery(
+    name = "Product.findExpensiveProducts",
+    query = "select p from Product p where p.price > :price"
+)
+@Entity
+public class Product {
+}
+
+Then repository can refer to the named query convention.
+
+
+6. Query By Example -
+
+QueryByExampleExecutor in the repository hierarchy.
+
+Product probe = new Product();
+probe.setName("Laptop");
+
+Example<Product> example = Example.of(probe);
+repository.findAll(example);
+
+Find Products matching the populated fields of this example object.
+
+
+7. **Specifications -
+
+Now imagine an API: GET /products?name=Laptop &minPrice=10000 &maxPrice=80000 &minQuantity=2
+
+Maybe every filter is optional.
+
+We don't want method like : findByNameAndPriceGreaterThanAndPriceLessThanAndQuantityGreaterThan(...)
+
+Instead we can use: JpaSpecificationExecutor<Product>
+
+Example : public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> { }
+
+Then build conditions dynamically.
+
+Conceptually:
+if name exists
+→ add name predicate
+
+if minPrice exists
+→ add price >= predicate
+
+if maxPrice exists
+→ add price <= predicate
+
+Specifications are built on top of the JPA Criteria API.
+
+Very Useful for : 
+dynamic search/filter APIs
+admin dashboards
+complex optional filters
+
+
+8. Custom Repository Implementation -
+
+Sometimes none of the standard approaches is clean enough. Then you can create your own repository fragment and use: EntityManager directly.
+
+Conceptually:
+
+ProductRepository
+     +
+CustomProductRepository
+
+       ↓
+
+Custom implementation
+       ↓
+EntityManager
+                
+
+9. Stored Procedures -
+
+Spring Data JPA also supports stored procedures.
+
+@Procedure("calculate_inventory")
+void calculateInventory();
+
+This is less common in ordinary Spring applications but important in organizations where business logic lives partly inside the database.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Short interview notes
+
+Q. What are the major ways to create queries in Spring Data JPA?
+
+Derived query methods, @Query with JPQL, native SQL queries, named queries, Specifications/Criteria API, Query By Example, custom repository implementations, and stored procedures.
+
+Q. When should we use derived query methods?
+For simple and readable conditions.
+
+Q. When should we use @Query?
+When the derived method becomes too complex or cannot express the required query cleanly.
+
+Q. JPQL vs native SQL?
+
+JPQL   → works with entities and Java properties
+Native → works directly with DB tables/columns
+
+Q. When are Specifications useful?
+For dynamic queries where many filter parameters are optional. 
+Derived queries are best for simple fixed conditions, while Specifications are better for dynamic filtering where predicates are composed at runtime.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Entity Life Cycle : The relationship between a particular Java entity instance and the Persistence Context.
+
+1. Transient state -
+
+Product product = new Product();
+
+Java object exists in JVM memory.
+Hibernate does not know about it.
+
+Java object exists
+        ↓
+Hibernate is NOT tracking it
+        ↓
+Transient
+
+         
+2. Persistent / Managed state -
+
+When we do :
+save()
+persist()
+update()
+
+Example:
+entityManager.persist(product);
+
+
+Transient Product
+       ↓
+entityManager.persist(product)
+       ↓
+Managed/Persistent Product
+
+Persistence Context : A container/map where Hibernate keeps track of currently managed entities.
+
+If we do query : Product product = entityManager.find(Product.class, 1L);
+
+First Hibernate check if I have this record inside Persistence Context ? 
+
+If Yes ->  then return from there no need for DB call.
+If No -> SELECT from database -> create entity object -> put it into Persistence Context -> return managed entity
+
+Dirty Checking :
+
+If query to find Product by Id : entityManager.find(Product.class, 1L);
+And after that we write : product.setPrice(new BigDecimal("90000"));
+And we didn't write update : entityManager.update(product); with new set value. Hibernate can detect the change and later execute: Update. This is called Dirty Check.
+
+This is the basis of Hibernate's first-level cache.
+
+"Dirty" simply means: A managed entity has changed compared with what Hibernate previously knew.
+
+product.setPrice(new BigDecimal("90000"));
+
+Original     Current
+75000        90000
+  │            │
+  └──── != ────┘
+        ↓
+     DIRTY
+        ↓
+generate UPDATE
+
+
+Dirty Checking
+      ↓
+detect changes
+
+Flush
+      ↓
+send SQL to synchronize changes
+
+
+
+3. Detached state -
+
+The Java object still exists.
+The database row still exists.
+But Hibernate is no longer tracking this particular object.
+
+If we do operation :
+
+detach()
+close()
+clear()
+
+entityManager.detach(product);
+
+After detach(): If we set any variable : product.setPrice(...)
+Changes only the Java object. Hibernate is no longer watching it, so normal dirty checking will not automatically update the database for that detached instance.
+
+From Detech state we can go to Persistent State again we do operations :
+save()
+merge()
+lock()
+
+4. Removed -
+
+We we do operation :
+delete()
+
+It will go from Persistent State to Removed State and then go to Garbage Collector.
+
+
+Complete Entity Life cycle :
+
+                         new Product()
+                              │
+                              │
+                              ▼
+                       ┌─────────────┐
+                       │  TRANSIENT       │
+                       └─────────────┘
+                         │         │
+                persist()│         │ no Java references
+                         │         ▼
+                         │        GC 🗑️
+                         ▼
+                 ┌──────────────────┐
+                 │ MANAGED /               │
+                 │ PERSISTENT              │◄───────────────────┐
+                 └──────────────────┘                            |
+                    │          │                                        |
+                    │          │ remove()                               │
+                    │          ▼                                        │
+                    │     ┌─────────────┐                          │
+                    │     │   REMOVED        │                          │
+                    │     └─────────────┘                          │
+                    │          │                                        │
+                    │          │ flush / commit                         │
+                    │          ▼                                        │
+                    │     DELETE DB ROW                                 │
+                    │          │                                        │
+                    │          │ no references later                    │
+                    │          ▼                                        │
+                    │         GC 🗑️                                     │
+                    │                                                    │
+      detach(entity)│                                                    │
+      clear()       │                                                    │
+      close()       │                                                    │
+                    ▼                                                    │
+              ┌─────────────┐                                       │
+              │  DETACHED        │                                       │
+              └─────────────┘                                       │
+                 │       │                                               │
+                 │       │ no Java references                            │
+                 │       ▼                                               │
+                 │      GC 🗑️                                            │
+                 │                                                        │
+                 │ merge()                                               │
+                 └────────────────────────────────────────┘
+
+
+Q. Why can Hibernate update a managed entity without calling save() or update()?
+Because Hibernate performs dirty checking on managed entities and automatically generates SQL for detected changes during flush/commit.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Mapping :
+
+What is an association/relationship?
+The relation between two entities.
+
+Mainly 4 Association Annotations given by JPA  : @OneToOne, @OneToMany, @ManyToOne, @ManyToMany
+
+Cardinality means: How many records on one side can be related to how many records on the other side.
+
+Suppose we have : 
+
+Customer and Order Entity
+
+A customer can place orders. So these entities are not independent anymore and there is a relationship:
+
+In database terminology, this relationship is usually represented using:
+
+Primary Key <-> Foreign Key
+
+Example - 
+
+customer :
+
+id | name
+---------
+1  | Rahul
+
+orders :
+
+id | amount | customer_id
+-------------------------
+10 | 5000   | 1
+11 | 2000   | 1
+
+
+Here we have customer_id is a foreign key.
+customer.id <-> orders.customer_id
+
+Crow foot symbol :
+|       = one
+<       = many
+
+Customer |-------< Order
+         one      many
+
+
+@OneToOne
+One A ↔ One B
+
+@OneToMany
+One A → Many B
+
+@ManyToOne
+Many A → One B
+
+@ManyToMany
+Many A ↔ Many B
+
+Q. Why does the FK usually live on the many side?
+Because each row on the many side belongs to one row on the one side, so one foreign-key value can represent that relationship cleanly.
+
+
+// Employee
+@ManyToOne
+@JoinColumn(name = "department_id")
+private Department department;
+
+
+// Department
+@OneToMany(mappedBy = "department")
+private List<Employee> employees;
+
+
+mappedBy = "department" -> mappedBy tells Hibernate: “This side is NOT the owner of the relationship. The relationship is already mapped by a field on the other entity.”
+
+“This Department.employees relationship is mapped/owned by the field named department on the other entity — Employee.”
+
+Department.java
+
+private List<Employee> employees;
+             │
+             │ mappedBy = "department"
+             │
+             │ "Go to Employee and find
+             │  the field called department"
+             ▼
+
+Employee.java
+
+private Department department;
+                   │
+                   │ @JoinColumn("department_id")
+                   ▼
+
+EMPLOYEE table
+department_id
+     │
+     ▼
+DEPARTMENT.id
+
+
+If No mappedBy property used :
+
+Relationship #1: Employee.department → using department_id
+Relationship #2: Department.employees → separate OneToMany relationship
+So Hibernate will create another Join Table.
+
+So mappedBy mainly does 2 things
+Tells Hibernate this is the inverse/non-owning side.
+Tells Hibernate which field on the other entity owns the relationship.
+
+
+| Mapping                         | Java navigation        | Typical DB representation         |
+| ----------------------------    | ---------------------- | --------------------------------- |
+| Only Department has @OneToMany` | Department → Employees | Join table created by default     |
+| Only `Employee has @ManyToOne`  | Employee → Department  | FK in `EMPLOYEE`                  |
+| Both side added annotation      | Employee → Department  | 
+                                  | Department → Employees |
+
+
+Employee.department
+        ↓
+OWNING SIDE
+        ↓
+writes department_id
+
+
+Department.employees
+        ↓
+INVERSE SIDE
+        ↓
+mappedBy = "department"
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Flush and Transactional :
+
+Flush = synchronize the Persistence Context with the database, means send/execute the pending SQL on the DB before the transaction is committed.
+Commit = successfully finish the database transaction.
+
+
+@Transactional method ends
+        ↓
+transaction commit starts
+        ↓
+Hibernate automatically flushes
+        ↓
+dirty checking
+        ↓
+UPDATE SQL
+        ↓
+database COMMIT
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@Transactional :
+
+why do we need a Transaction?
+
+Suppose you need to do:
+1. Reduce account balance
+2. Create payment
+3. Update order status
+
+Imagine:
+Step 1 succeeds ✅
+Step 2 succeeds ✅
+Step 3 crashes ❌
+
+Without transactional protection, your database could become:
+Balance reduced          ✅
+Payment created          ✅
+Order still unpaid       ❌
+
+Your system is inconsistent.
+
+A transaction says: "Treat these database operations as one logical unit."
+
+
+BEGIN TRANSACTION
+
+UPDATE balance
+INSERT payment
+UPDATE order
+
+Everything successful?
+       │
+   ┌───┴───┐
+  Yes      No
+   │        │
+COMMIT   ROLLBACK
+
+
+Complete Flow :
+
+Transaction begins
+       ↓
+Persistence Context is used
+       ↓
+Entities become managed
+       ↓
+Application modifies them
+       ↓
+Dirty checking
+       ↓
+Flush
+       ↓
+SQL sent to DB
+       ↓
+Commit transaction
+
+
+Responsibilities:
+
+persist()
+→ Transient → Managed
+
+
+Persistence Context
+→ tracks Managed entities
+
+
+Dirty Checking
+→ determines what Managed entities changed
+
+
+flush()
+→ synchronizes changes using SQL
+
+
+Transaction
+→ defines all-or-nothing DB boundary
+
+
+commit()
+→ permanently completes transaction
+
+
+rollback()
+→ cancels transaction changes
+
+
+@Transactional
+→ Spring manages transaction boundary for us
+
+
+Note-ready Q&A
+
+Q. What is Persistence Context?
+A context in which Hibernate/JPA tracks managed entity instances.
+
+Q. What does dirty checking mean?
+Hibernate detects changes made to managed entities.
+
+Q. What does flush mean?
+Synchronize pending entity changes with the database by executing necessary SQL.
+
+Q. Is flush the same as commit?
+No. Flush sends/synchronizes SQL; commit completes the DB transaction.
+
+Q. Why do we need transactions?
+To treat multiple DB operations as one unit so they either all succeed or can be rolled back together.
+
+Q. What does @Transactional do at a high level?
+Spring creates/manages the transaction boundary around the method and commits or rolls back appropriately.
+
+Q. Why can a managed entity update without save()?
+Because Hibernate tracks it and dirty checking can generate an UPDATE during flush.
+
+Example with complete flow :
+
+@Transactional
+public void updatePrice(Long id) {
+
+    Product product =
+        productRepository.findById(id).orElseThrow();
+
+    product.setPrice(new BigDecimal("90000"));
+}
+
+Answer :
+The method starts and the transaction begins. findById() loads the Product and it becomes managed inside the Persistence Context. product.setPrice() changes the managed Java object. When Hibernate later flushes, usually before transaction commit, dirty checking detects that the managed entity changed and generates the required UPDATE SQL. Finally, the database transaction commits.
+
+@Transactional method starts
+        ↓
+Transaction begins
+        ↓
+findById()
+        ↓
+SELECT from DB
+        ↓
+Product becomes MANAGED
+inside Persistence Context
+        ↓
+Hibernate remembers its original state
+        ↓
+product.setPrice(90000)
+        ↓
+Only the managed Java object changes
+        ↓
+DB may still contain old price
+        ↓
+method finishes
+        ↓
+transaction commit is requested
+        ↓
+Hibernate FLUSHES
+        ↓
+DIRTY CHECKING happens
+        ↓
+original state vs current state compared
+        ↓
+change detected
+        ↓
+UPDATE SQL executed
+        ↓
+DB synchronized
+        ↓
+COMMIT
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Cascade and Types :
+
+What is Cascade?
+Cascade means: When an operation is performed on one entity, propagate that operation to its associated entity/entities.
+
+Operation on Entity A
+        ↓
+should that operation propagate
+        ↓
+to associated Entity B?
+
+Cascade is directional and Cascade works from the entity where you configure it.
+
+If we have :
+
+//Department 
+@OneToMany( mappedBy = "department",cascade = CascadeType.PERSIST)
+private List<Employee> employees;
+
+For above 
+Department -> Employee ✅ -> If Department save then Employee will save as well.
+Employee -> Department ❌ ->If Employee save then Department will not save until we define at Employee side as well.
+
+
+JPA provides :
+CascadeType.PERSIST
+CascadeType.MERGE
+CascadeType.REMOVE
+CascadeType.REFRESH
+CascadeType.DETACH
+CascadeType.ALL
+
+
+
+1. CascadeType.PERSIST -
+
+If the parent is persisted, persist the associated child as well.
+
+Example :
+
+//Department 
+@OneToMany( mappedBy = "department",cascade = CascadeType.PERSIST)
+private List<Employee> employees;
+
+entityManager.persist(department);
+
+Flow :
+
+persist(department)
+       ↓
+Department becomes managed
+       ↓
+Hibernate sees cascade = PERSIST
+       ↓
+looks at department.employees
+       ↓
+persist(employee)
+       ↓
+Employee becomes managed
+       ↓
+flush
+       ↓
+INSERT department
+INSERT employee
+
+
+Example :
+
+@Transactional
+public void createDepartment() {
+
+    Department department = new Department();
+    department.setName("Engineering");
+
+    Employee employee = new Employee();
+    employee.setName("Amit");
+
+    employee.setDepartment(department);
+    department.getEmployees().add(employee);
+
+    entityManager.persist(department);
+}
+
+FLow :
+
+@Transactional starts
+       ↓
+DB transaction starts
+       ↓
+new Department
+→ TRANSIENT
+
+new Employee
+→ TRANSIENT
+       ↓
+persist(department)
+       ↓
+Department → MANAGED
+       ↓
+CascadeType.PERSIST
+       ↓
+Employee → MANAGED
+       ↓
+method finishes
+       ↓
+flush
+       ↓
+INSERT department
+INSERT employee
+       ↓
+commit
+
+
+Persistent Conext will now manage both if we only do entityManager.persist(department) on Department because Department have Cascade Type :
+
+Persistence Context
+──────────────
+Department  → MANAGED
+Employee    → MANAGED
+
+Flow:
+
+Department = TRANSIENT
+Employee   = TRANSIENT
+        ↓
+persist(department)
+        ↓
+Department → MANAGED
+        ↓
+CascadeType.PERSIST
+        ↓
+Hibernate also persists Employee
+        ↓
+Employee → MANAGED
+
+
+2. CascadeType.MERGE -
+
+When I explicitly merge this entity, also propagate the merge operation to associated entities.
+
+Suppose we do detached to Department, now Employee will also be Detached.
+
+Original objects:
+
+Department A → DETACHED
+Employee A   → DETACHED
+
+With merge(), Hibernate takes the state from the detached objects and copies it into managed instances.
+
+Suppose we call : Department managedDepartment = entityManager.merge(department);
+
+cascade = CascadeType.MERGE :
+
+Detached Department A
+        │
+        │ copy state
+        ▼
+Managed Department B
+
+and because of CascadeType.MERGE:
+
+Detached Employee A
+        │
+        │ copy state
+        ▼
+Managed Employee B
+        
+
+If we merge it copy from DETACHED state to Persistent/Managed State :
+
+Department A → still DETACHED
+Employee A   → still DETACHED
+
+Department B → MANAGED
+Employee B   → MANAGED
+
+Q. With CascadeType.MERGE, do the original detached parent and children become managed?
+No. Their state is merged into managed instances. The original objects remain detached.
+
+
+3.CascadeType.REMOVE -
+
+This one is important because unlike PERSIST and MERGE, a mistake here can actually delete related rows.
+
+When Department is removed, propagate remove() to its associated Employees too.
+
+remove(Department)
+       ↓
+Department → REMOVED
+       ↓
+CascadeType.REMOVE
+       ↓
+Employee 1 → REMOVED
+Employee 2 → REMOVED
+Employee 3 → REMOVED
+
+Then during flush Hibernate executes the necessary deletes.
+
+DELETE FROM employee
+WHERE id = 1;
+
+DELETE FROM employee
+WHERE id = 2;
+
+DELETE FROM employee
+WHERE id = 3;
+
+DELETE FROM department
+WHERE id = 10;
+
+Note : 
+The children generally need to be deleted first because: If Hibernate tried to delete Department first while Employees still referenced it, the database foreign-key constraint could reject the delete.
+
+EMPLOYEE.department_id
+        ↓ FK
+DEPARTMENT.id
+
+Flow :
+
+Department MANAGED
+Employees  MANAGED
+       ↓
+remove(department)
+       ↓
+Department → REMOVED
+       ↓
+cascade REMOVE
+       ↓
+Employees → REMOVED
+       ↓
+flush
+       ↓
+DELETE employees
+       ↓
+DELETE department
+       ↓
+commit
+
+
+**Important: don't put REMOVE everywhere
+
+Example :
+@Entity
+class Employee {
+
+    @ManyToOne(cascade = CascadeType.REMOVE)
+    private Department department;
+}
+
+Now deleting: entityManager.remove(employee);
+
+Employee REMOVE -> Propagate to Department REMOVE.
+
+Deleting Amit should almost certainly not delete the Engineering department.
+
+So on a typical ManyToOne: we normally do not casually use: cascade = CascadeType.REMOVE because many entities may share that parent.
+
+
+4. CascadeType.DETACH -
+
+If the parent entity is explicitly detached, also detach the associated entities. 
+
+Detache() =  Remove this particular entity from the Persistence Context.
+Clear() = Detach all managed entities from this Persistence Context.
+
+This one connects directly to the DETACHED State. 
+
+Flow :
+
+find Department
+      ↓
+Department → MANAGED
+Employees  → MANAGED
+      ↓
+detach(department)
+      ↓
+Department → DETACHED
+      ↓
+cascade DETACH
+      ↓
+Employees → DETACHED
+      ↓
+change detached objects
+      ↓
+Hibernate doesn't dirty-check those objects : After DETACHED objects are no longer tracked by the Persistence Context.
+
+
+5. CascadeType.REFRESH -
+
+refresh() means : Ignore my current in-memory values and reload the latest values from the database.
+
+This works in the opposite direction from flush():
+
+flush()
+Persistence Context ─────→ Database
+
+refresh()
+Database ────────────────→ Persistence Context
+
+Flow :
+
+refresh Department
+       ↓
+reload Department from DB
+       ↓
+CascadeType.REFRESH
+       ↓
+refresh Employee A
+refresh Employee B
+       ↓
+reload their values from DB
+
+The database values win.
+
+
+6. CascadeType.ALL -
+
+Apply all JPA cascade operations to the associated entity.
+
+CascadeType.ALL
+      ↓
+includes
+      ↓
+PERSIST
+MERGE
+REMOVE
+REFRESH
+DETACH
+
+As it contains REMOVE so it can be very dangerous to use.
+
+Q. Should we always use CascadeType.ALL?
+No. Only when the associated entity genuinely shares the lifecycle of the parent.
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+

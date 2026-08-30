@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: jpa
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/test?useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: priye223@
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        format_sql: true
+
+#  sql:
+#    init:
+#      mode: always
+#    data-locations: classpath:/data.sql
