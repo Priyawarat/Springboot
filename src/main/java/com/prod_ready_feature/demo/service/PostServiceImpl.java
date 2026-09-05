@@ -6,6 +6,8 @@ import com.prod_ready_feature.demo.exceptions.ResourceNotFoundException;
 import com.prod_ready_feature.demo.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,8 @@ public class PostServiceImpl implements PostService{
 
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
+
+    private final Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
 
     @Override
     public List<PostDto> getAllPosts() {
@@ -30,7 +34,7 @@ public class PostServiceImpl implements PostService{
     @Override
     public PostDto createNewPost(PostDto inputPost) {
 
-        System.out.println("Input Post: " + inputPost.toString());
+        logger.info("Input Post: {}", inputPost.toString());
         PostEntity postEntity = modelMapper.map(inputPost, PostEntity.class);
         PostEntity savedPostEntity = postRepository.save(postEntity);
         PostDto savedPostDto = modelMapper.map(savedPostEntity, PostDto.class);
